@@ -1,3 +1,18 @@
+# NCBI Downloader
+
+Python script to download test data from the NCBI FTP server
+
+## Setup
+```bash
+# install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# download the ncbi summary file
+curl -O https://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt
+```
+
 ## Usage
 
 The script loads the NCBI assembly summary file into a local SQLite database (`summary.db`), so you can select exactly which genomes to download using standard SQL against the `summary` table. Column names match the headers in `assembly_summary.txt` (e.g. `organism_name`, `assembly_level`, `taxid`, `ftp_path`, etc).
