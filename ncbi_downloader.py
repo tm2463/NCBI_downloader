@@ -12,12 +12,41 @@ import requests
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--summary", type=str, required=True, help="NCBI summary tsv (i.e. https://ftp.ncbi.nlm.nih.gov/genomes/refseq/archaea/assembly_summary.txt)")
-    parser.add_argument("--query", type=str, required=True, help="sqlite3 query to select data for download")
-    parser.add_argument("--preview", action="store_true", help="Preview query results without downloading")
-    parser.add_argument("--outdir", type=Path, default=Path.cwd(), help="Path to output dir")
-    parser.add_argument("--file_type", type=str, default="_genomic.fna.gz", help="FTP suffix (i.e. '_genomic.fna.gz)")
+
+    parser.add_argument(
+        "-s", "--summary", 
+        type=str, 
+        required=True, 
+        help="NCBI summary tsv (e.g. path/to/assembly_summary.txt)"
+    )
+    parser.add_argument(
+        "-q", "--query",
+        type=str, 
+        required=True,
+        help="SQL query to select data for download"
+    )
+    parser.add_argument(
+        "-p", "--preview", 
+        action="store_true", 
+        help="Preview query results without downloading"
+    )
+    parser.add_argument(
+        "-o", "--outdir", 
+        type=Path, 
+        default=Path.cwd(), 
+        help="Path to output dir"
+    )
+    parser.add_argument(
+        "-t", "--file_type", 
+        type=str, 
+        default="_genomic.fna.gz", 
+        help="FTP suffix (i.e. '_genomic.fna.gz)"
+    )
     return parser.parse_args()
+
+
+def parse_summary(summary: Path) -> pd.DataFrame:
+    return pd.read_csv(summary, sep='\t', skiprows=1)
 
 
 def validate_file(ftp, reference, md5local):
@@ -36,15 +65,8 @@ def main():
     outdir = args.outdir
     outdir.mkdir(exist_ok=True, parents=True)
 
-    ncbi = requests.get(args.summary)
+    df = parse_summary(args.summary)
 
-    # TODO: check if summary file attempting to download is the one existing on disk
-
-    summary = outdir / "summary.tsv"
-    with open(summary, "wb") as f:
-        f.write(ncbi.content) 
-
-    df = pd.read_csv(summary, sep='\t', skiprows=1)
     conn = sqlite3.connect(outdir / "summary.db")
     df.to_sql("summary", conn, if_exists="replace", index=False)
     result = pd.read_sql_query(args.query, conn)
