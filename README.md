@@ -35,7 +35,7 @@ python ncbi_downloader.py -s assembly_summary.txt -q "SQL_QUERY" -o output_dir
 Before downloading, use `--preview` to check how many assemblies match:
 
 ```bash
-python ncbi_downloader.py \
+ncbi_downloader.py \
   -s assembly_summary.txt \
   -q "SELECT * FROM summary WHERE organism_name LIKE '%Escherichia coli%'" \
   --preview
