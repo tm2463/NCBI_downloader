@@ -65,10 +65,15 @@ def main():
     outdir = args.outdir
     outdir.mkdir(exist_ok=True, parents=True)
 
-    df = parse_summary(args.summary)
+    summary_db = outdir / "summary.db"
 
-    conn = sqlite3.connect(outdir / "summary.db")
-    df.to_sql("summary", conn, if_exists="replace", index=False)
+    if not summary_db.exists():
+        df = parse_summary(args.summary)
+        conn = sqlite3.connect(summary_db)
+        df.to_sql("summary", conn, if_exists="replace", index=False)
+    else:
+        conn = sqlite3.connect(summary_db)
+
     result = pd.read_sql_query(args.query, conn)
 
     if args.preview:

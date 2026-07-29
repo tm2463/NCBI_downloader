@@ -1,5 +1,6 @@
 assembly_summary.txt
 data/
+summary.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

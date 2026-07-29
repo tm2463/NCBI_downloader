@@ -1,17 +1,3 @@
-# NCBI_downloader
-Python script to download test data from the NCBI FTP server
-
-## Setup
-```bash
-# install dependencies
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# download the ncbi summary file
-curl -O https://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt
-```
-
 ## Usage
 
 The script loads the NCBI assembly summary file into a local SQLite database (`summary.db`), so you can select exactly which genomes to download using standard SQL against the `summary` table. Column names match the headers in `assembly_summary.txt` (e.g. `organism_name`, `assembly_level`, `taxid`, `ftp_path`, etc).
@@ -20,11 +6,13 @@ The script loads the NCBI assembly summary file into a local SQLite database (`s
 python ncbi_downloader.py -s assembly_summary.txt -q "SQL_QUERY" -o output_dir
 ```
 
+> **Note:** On first run, the script builds `output_dir/summary.db` from your summary TSV. On subsequent runs, if `summary.db` already exists in `output_dir`, it is reused as-is and the `-s/--summary` file is **not** re-read. If you update `assembly_summary.txt` and want the database rebuilt, delete `summary.db` first (or point `-o` at a fresh output directory).
+
 ### Arguments
 
 | Flag | Description |
 |------|-------------|
-| `-s`, `--summary` | Path to the NCBI summary TSV (e.g. `assembly_summary.txt`) |
+| `-s`, `--summary` | Path to the NCBI summary TSV (e.g. `assembly_summary.txt`). Only used if `summary.db` doesn't already exist in `outdir` |
 | `-q`, `--query` | SQL query to select rows from the `summary` table |
 | `-p`, `--preview` | Preview the number of matching results without downloading |
 | `-o`, `--outdir` | Output directory (default: current directory) |
@@ -35,7 +23,7 @@ python ncbi_downloader.py -s assembly_summary.txt -q "SQL_QUERY" -o output_dir
 Before downloading, use `--preview` to check how many assemblies match:
 
 ```bash
-ncbi_downloader.py \
+python ncbi_downloader.py \
   -s assembly_summary.txt \
   -q "SELECT * FROM summary WHERE organism_name LIKE '%Escherichia coli%'" \
   --preview
@@ -81,6 +69,15 @@ AND excluded_from_refseq IS NULL
 ```sql
 SELECT * FROM summary
 WHERE seq_rel_date >= '2022-01-01'
+```
+
+### Running multiple queries against the same summary
+
+Since `summary.db` is reused once created, you can run several queries back-to-back without re-parsing the TSV each time — just point them at the same `-o outdir`:
+
+```bash
+python ncbi_downloader.py -s assembly_summary.txt -q "SELECT * FROM summary WHERE taxid = 562" -o output_dir
+python ncbi_downloader.py -s assembly_summary.txt -q "SELECT * FROM summary WHERE taxid = 573" -o output_dir
 ```
 
 ### Downloading protein FASTA instead of genomic FASTA
