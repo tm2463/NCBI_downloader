@@ -6,7 +6,9 @@ The script loads the NCBI assembly summary file into a local SQLite database (`s
 python ncbi_downloader.py -s assembly_summary.txt -q "SQL_QUERY" -o output_dir
 ```
 
-> **Note:** On first run, the script builds `output_dir/summary.db` from your summary TSV. On subsequent runs, if `summary.db` already exists in `output_dir`, it is reused as-is and the `-s/--summary` file is **not** re-read. If you update `assembly_summary.txt` and want the database rebuilt, delete `summary.db` first (or point `-o` at a fresh output directory).
+> **Note:** On first run, the script builds `output_dir/summary.db` from your summary TSV. On subsequent runs, if `summary.db` already exists in your current dir, it is reused as-is and the `-s/--summary` file is **not** re-read. If you update `assembly_summary.txt` and want the database rebuilt, delete `summary.db` first.
+
+> **Note:** The first query will take longer than any subsequent runs due to the needs to build summary.db first. Subsequent queries are much faster
 
 ### Arguments
 

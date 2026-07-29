@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import os
 import argparse
 import sqlite3 
 import hashlib
@@ -65,9 +66,10 @@ def main():
     outdir = args.outdir
     outdir.mkdir(exist_ok=True, parents=True)
 
-    summary_db = outdir / "summary.db"
+    summary_db = Path.cwd() / "summary.db"
 
     if not summary_db.exists():
+        print("\nCreating summary.db\n")
         df = parse_summary(args.summary)
         conn = sqlite3.connect(summary_db)
         df.to_sql("summary", conn, if_exists="replace", index=False)
@@ -77,12 +79,14 @@ def main():
     result = pd.read_sql_query(args.query, conn)
 
     if args.preview:
-        print(f"Query will return {len(result)} items")
+        print(f"\nQuery will return {len(result)} items:\n")
+        print(result[["#assembly_accession", "species_taxid", "organism_name", "infraspecific_name", "assembly_level", "gc_percent", "contig_count"]])
         return
 
     data = outdir / "data"
     data.mkdir(exist_ok=True, parents=True)
-    
+
+    print(f"Fetching {len(result)} items")
     for _, row in tqdm(result.iterrows(), total=len(result), desc="Progress"):
         ftp = row["ftp_path"]
         target = ftp.split("/")[-2]
@@ -98,6 +102,8 @@ def main():
         else:
             print(f"{ftp} md5 mismatch, skipping...")
 
-        
+    os.remove("tmp.txt")
+
+
 if __name__ == "__main__":
     main()
