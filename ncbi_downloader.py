@@ -91,8 +91,15 @@ def main():
         ftp = row["ftp_path"]
         target = ftp.split("/")[-2]
         link = f"{ftp}{target}{args.file_type}"
-        response = requests.get(link, timeout=120)
         outfile = data / f"{target}{args.file_type}"
+
+        try:
+            response = requests.get(link, timeout=120)
+        except Exception as e:
+            print(f"{ftp} failed to download: {e}, skipping...")
+            with open("failed_links.txt", "a") as fail:
+                fail.write(f"{ftp}")
+            continue
 
         md5local = hashlib.md5(response.content).hexdigest()
 
