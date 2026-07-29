@@ -50,7 +50,7 @@ def parse_summary(summary: Path) -> pd.DataFrame:
     return pd.read_csv(summary, sep='\t', skiprows=1)
 
 
-def validate_file(ftp, reference, md5local):
+def validate_file(ftp: str, reference: str, md5local: str) -> bool:
     source = requests.get(f"{ftp}/md5checksums.txt")
 
     with open("tmp.txt", "wb") as tmp:
